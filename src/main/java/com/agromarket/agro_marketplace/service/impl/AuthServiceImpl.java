@@ -1,7 +1,7 @@
 package com.agromarket.agro_marketplace.service.impl;
 
 import com.agromarket.agro_marketplace.dto.auth.*;
-import com.agromarket.agro_marketplace.entity.Role;
+import com.agromarket.agro_marketplace.entity.Roles;
 import com.agromarket.agro_marketplace.entity.User;
 import com.agromarket.agro_marketplace.repository.UserRepository;
 import com.agromarket.agro_marketplace.security.JwtService;
@@ -33,8 +33,8 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(req.email()))
             throw new RuntimeException("Email already registered");
 
-        Set<Role> roles = (req.roles() == null || req.roles().isEmpty())
-                ? Set.of(Role.BUYER)
+        Set<Roles> roles = (req.roles() == null || req.roles().isEmpty())
+                ? Set.of(Roles.BUYER)
                 : req.roles();
 
         User user = User.builder()
