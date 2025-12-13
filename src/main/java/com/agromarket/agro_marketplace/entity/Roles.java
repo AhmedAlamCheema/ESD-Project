@@ -1,5 +1,5 @@
 package com.agromarket.agro_marketplace.entity;
 
 public enum Roles {
-    ADMIN, FARMER, SUPPLIER, BUYER
+    ADMIN, FARMER, BUYER
 }

@@ -7,17 +7,22 @@ import com.agromarket.agro_marketplace.service.PaymentService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepo;
     private final OrderRepository orderRepo;
+    private final UserRepository userRepo;
 
-    public PaymentServiceImpl(PaymentRepository paymentRepo, OrderRepository orderRepo) {
+    public PaymentServiceImpl(PaymentRepository paymentRepo, OrderRepository orderRepo, UserRepository userRepo) {
         this.paymentRepo = paymentRepo;
         this.orderRepo = orderRepo;
+        this.userRepo = userRepo;
     }
 
     @Transactional
@@ -47,6 +52,23 @@ public class PaymentServiceImpl implements PaymentService {
 
         order.setStatus(OrderStatus.PAID);
         orderRepo.save(order);
+
+        // Add revenue to each seller based on their items in this order
+        Map<Long, BigDecimal> sellerRevenue = new HashMap<>();
+        for (OrderItem item : order.getItems()) {
+            Long sellerId = item.getProduct().getSeller().getId();
+            BigDecimal lineTotal = item.getLineTotal();
+            sellerRevenue.merge(sellerId, lineTotal, BigDecimal::add);
+        }
+
+        for (Map.Entry<Long, BigDecimal> entry : sellerRevenue.entrySet()) {
+            User seller = userRepo.findById(entry.getKey()).orElse(null);
+            if (seller != null) {
+                BigDecimal currentRevenue = seller.getRevenue() != null ? seller.getRevenue() : BigDecimal.ZERO;
+                seller.setRevenue(currentRevenue.add(entry.getValue()));
+                userRepo.save(seller);
+            }
+        }
 
         return toDTO(saved);
     }

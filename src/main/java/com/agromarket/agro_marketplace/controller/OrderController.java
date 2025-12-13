@@ -30,16 +30,29 @@ public class OrderController {
         return ResponseEntity.ok(orderService.myOrders(auth.getName()));
     }
 
-    @PreAuthorize("hasAnyRole('BUYER','ADMIN')")
+    @PreAuthorize("hasRole('FARMER')")
+    @GetMapping("/seller")
+    public ResponseEntity<List<OrderDTO>> sellerOrders(Authentication auth) {
+        return ResponseEntity.ok(orderService.sellerOrders(auth.getName()));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<List<OrderDTO>> allOrders() {
+        return ResponseEntity.ok(orderService.allOrders());
+    }
+
+    @PreAuthorize("hasAnyRole('BUYER','ADMIN','FARMER')")
     @GetMapping("/{id}")
     public ResponseEntity<OrderDTO> get(@PathVariable Long id, Authentication auth) {
         boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         return ResponseEntity.ok(orderService.getById(id, auth.getName(), isAdmin));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','FARMER')")
     @PatchMapping("/{id}/status")
-    public ResponseEntity<OrderDTO> updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateOrderStatusRequest req) {
-        return ResponseEntity.ok(orderService.updateStatus(id, req.status()));
+    public ResponseEntity<OrderDTO> updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateOrderStatusRequest req, Authentication auth) {
+        boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        return ResponseEntity.ok(orderService.updateStatus(id, req.status(), auth.getName(), isAdmin));
     }
 }

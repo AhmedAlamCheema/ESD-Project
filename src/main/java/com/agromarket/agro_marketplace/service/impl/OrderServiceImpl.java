@@ -1,6 +1,7 @@
 package com.agromarket.agro_marketplace.service.impl;
 
 import com.agromarket.agro_marketplace.dto.order.*;
+import com.agromarket.agro_marketplace.dto.payment.PaymentDTO;
 import com.agromarket.agro_marketplace.entity.*;
 import com.agromarket.agro_marketplace.repository.*;
 import com.agromarket.agro_marketplace.service.OrderService;
@@ -17,11 +18,13 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepo;
     private final ProductRepository productRepo;
     private final UserRepository userRepo;
+    private final PaymentRepository paymentRepo;
 
-    public OrderServiceImpl(OrderRepository orderRepo, ProductRepository productRepo, UserRepository userRepo) {
+    public OrderServiceImpl(OrderRepository orderRepo, ProductRepository productRepo, UserRepository userRepo, PaymentRepository paymentRepo) {
         this.orderRepo = orderRepo;
         this.productRepo = productRepo;
         this.userRepo = userRepo;
+        this.paymentRepo = paymentRepo;
     }
 
     @Transactional
@@ -77,6 +80,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderDTO> sellerOrders(String sellerEmail) {
+        return orderRepo.findOrdersBySeller(sellerEmail).stream().map(this::toDTO).toList();
+    }
+
+    @Override
+    public List<OrderDTO> allOrders() {
+        return orderRepo.findAll().stream().map(this::toDTO).toList();
+    }
+
+    @Override
     public OrderDTO getById(Long id, String requesterEmail, boolean isAdmin) {
         Order order = orderRepo.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
         if (!isAdmin && !order.getBuyer().getEmail().equals(requesterEmail)) {
@@ -87,8 +100,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public OrderDTO updateStatus(Long id, OrderStatus status) {
+    public OrderDTO updateStatus(Long id, OrderStatus status, String userEmail, boolean isAdmin) {
         Order order = orderRepo.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+        
+        // Farmers can only update status for orders containing their products
+        if (!isAdmin) {
+            boolean isSeller = order.getItems().stream()
+                    .anyMatch(i -> i.getProduct().getSeller().getEmail().equals(userEmail));
+            if (!isSeller) {
+                throw new RuntimeException("You can only update orders for your products");
+            }
+        }
+        
         order.setStatus(status);
         return toDTO(orderRepo.save(order));
     }
@@ -100,10 +123,28 @@ public class OrderServiceImpl implements OrderService {
                         i.getProduct().getName(),
                         i.getQuantity(),
                         i.getUnitPrice(),
-                        i.getLineTotal()
+                        i.getLineTotal(),
+                        i.getProduct().getSeller().getId(),
+                        i.getProduct().getSeller().getFullName(),
+                        i.getProduct().getSeller().getEmail()
                 ))
                 .toList();
 
-        return new OrderDTO(o.getId(), o.getStatus(), o.getTotalAmount(), o.getCreatedAt(), items);
+        // Fetch payment if exists
+        PaymentDTO paymentDTO = paymentRepo.findByOrder_Id(o.getId())
+                .map(p -> new PaymentDTO(p.getId(), p.getOrder().getId(), p.getAmount(), p.getStatus(), p.getMethod(), p.getReference(), p.getPaidAt()))
+                .orElse(null);
+
+        return new OrderDTO(
+                o.getId(), 
+                o.getStatus(), 
+                o.getTotalAmount(), 
+                o.getCreatedAt(), 
+                items,
+                o.getBuyer().getId(),
+                o.getBuyer().getFullName(),
+                o.getBuyer().getEmail(),
+                paymentDTO
+        );
     }
 }

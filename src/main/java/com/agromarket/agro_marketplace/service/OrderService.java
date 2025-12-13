@@ -8,6 +8,8 @@ import java.util.List;
 public interface OrderService {
     OrderDTO create(CreateOrderRequest req, String buyerEmail);
     List<OrderDTO> myOrders(String buyerEmail);
+    List<OrderDTO> sellerOrders(String sellerEmail);
+    List<OrderDTO> allOrders();
     OrderDTO getById(Long id, String requesterEmail, boolean isAdmin);
-    OrderDTO updateStatus(Long id, OrderStatus status);
+    OrderDTO updateStatus(Long id, OrderStatus status, String userEmail, boolean isAdmin);
 }

@@ -1,6 +1,6 @@
 package com.agromarket.agro_marketplace.controller;
 
-import com.agromarket.agro_marketplace.entity.User;
+import com.agromarket.agro_marketplace.dto.user.UserDTO;
 import com.agromarket.agro_marketplace.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,13 +18,20 @@ public class UserController {
     public UserController(UserService userService) { this.userService = userService; }
 
     @GetMapping("/me")
-    public ResponseEntity<User> me(Authentication auth) {
+    public ResponseEntity<UserDTO> me(Authentication auth) {
         return ResponseEntity.ok(userService.me(auth.getName()));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<User>> listAll() {
+    public ResponseEntity<List<UserDTO>> listAll() {
         return ResponseEntity.ok(userService.listAll());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        userService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

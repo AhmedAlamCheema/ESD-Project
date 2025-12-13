@@ -18,7 +18,7 @@ public class ProductController {
 
     public ProductController(ProductService productService) { this.productService = productService; }
 
-    @PreAuthorize("hasAnyRole('FARMER','SUPPLIER')")
+    @PreAuthorize("hasAnyRole('FARMER','ADMIN','SELLER')")
     @PostMapping
     public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductCreateRequest req, Authentication auth) {
         return ResponseEntity.ok(productService.create(req, auth.getName()));
@@ -37,7 +37,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.get(id));
     }
 
-    @PreAuthorize("hasAnyRole('FARMER','SUPPLIER')")
+    @PreAuthorize("hasRole('FARMER')")
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> update(@PathVariable Long id,
                                                   @Valid @RequestBody ProductCreateRequest req,
@@ -45,7 +45,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.update(id, req, auth.getName()));
     }
 
-    @PreAuthorize("hasAnyRole('FARMER','SUPPLIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('FARMER','ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication auth) {
         boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));

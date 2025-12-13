@@ -7,5 +7,8 @@ public record OrderItemDTO(
         String productName,
         Integer quantity,
         BigDecimal unitPrice,
-        BigDecimal lineTotal
+        BigDecimal lineTotal,
+        Long sellerId,
+        String sellerName,
+        String sellerEmail
 ) {}

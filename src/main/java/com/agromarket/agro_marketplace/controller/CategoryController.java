@@ -1,13 +1,12 @@
 package com.agromarket.agro_marketplace.controller;
-import jakarta.validation.Valid;
+
+import com.agromarket.agro_marketplace.dto.catalog.CategoryCreateRequest;
 import com.agromarket.agro_marketplace.dto.catalog.CategoryDTO;
 import com.agromarket.agro_marketplace.service.CategoryService;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import com.agromarket.agro_marketplace.dto.catalog.CategoryCreateRequest;
-
 
 import java.util.List;
 
@@ -21,8 +20,8 @@ public class CategoryController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<CategoryDTO> create(@RequestBody @NotBlank String name) {
-        return ResponseEntity.ok(categoryService.create(name));
+    public ResponseEntity<CategoryDTO> create(@Valid @RequestBody CategoryCreateRequest req) {
+        return ResponseEntity.ok(categoryService.create(req.name()));
     }
 
     @GetMapping
@@ -36,11 +35,5 @@ public class CategoryController {
         categoryService.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @PostMapping
-//    public ResponseEntity<CategoryDTO> create(@Valid @RequestBody CategoryCreateRequest req) {
-//        return ResponseEntity.ok(categoryService.create(req.name()));
-//    }
 
 }

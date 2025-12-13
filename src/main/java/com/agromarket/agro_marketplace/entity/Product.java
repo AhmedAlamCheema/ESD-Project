@@ -19,5 +19,5 @@ public class Product {
     @Column(nullable = false) private Integer stockQty;
 
     @ManyToOne(optional = false) private Category category;
-    @ManyToOne(optional = false) private User seller; // FARMER / SUPPLIER
+    @ManyToOne(optional = false) private User seller; // FARMER
 }

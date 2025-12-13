@@ -1,5 +1,6 @@
 package com.agromarket.agro_marketplace.dto.order;
 
+import com.agromarket.agro_marketplace.dto.payment.PaymentDTO;
 import com.agromarket.agro_marketplace.entity.OrderStatus;
 
 import java.math.BigDecimal;
@@ -11,5 +12,9 @@ public record OrderDTO(
         OrderStatus status,
         BigDecimal totalAmount,
         Instant createdAt,
-        List<OrderItemDTO> items
+        List<OrderItemDTO> items,
+        Long buyerId,
+        String buyerName,
+        String buyerEmail,
+        PaymentDTO payment
 ) {}
